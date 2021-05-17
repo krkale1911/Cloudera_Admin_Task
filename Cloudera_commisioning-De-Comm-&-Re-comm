@@ -1,0 +1,93 @@
+_ _ _ _ 😎️ By Kiran Kale😎️
+***********************************************************************************************************
+--------------CLOUDERA MANAGER --COMMISSIONING------------------------------------------------------------
+************************************************************************************************************
+
+#launch instance 
+
+#perform prerequisits on it
+	-sudo apt-get update && sudo apt-get dist-upgrade -y
+	
+	-sudo nano /etc/rc.local
+	
+	## Add these lines:
+
+	if test -f /sys/kernel/mm/transparent_hugepage/enabled; then
+	    echo never > /sys/kernel/mm/transparent_hugepage/enabled
+	fi
+
+	if test -f /sys/kernel/mm/transparent_hugepage/defrag; then
+	    echo never > /sys/kernel/mm/transparent_hugepage/defrag
+	fi
+
+	$sudo -i
+
+	$source /etc/rc.local 
+
+
+	-----*** Install NTP ***-----
+	$ sudo apt-get install ntp -y 
+	$ sudo service ntp status
+	## If it isn't running 
+	$ sudo service ntp start 
+
+
+	-----*** Set Swappiness ***-----
+	sudo sysctl -a | grep vm.swappiness
+	sudo sysctl vm.swappiness=1
+	echo 'vm.swappiness=1' | sudo tee --append /etc/sysctl.conf
+
+
+#############################################
+COME TO CM and Follw the bellow STEPS
+############################################
+login CM and GO
+
+---HOST-->ALL HOST
+---ADD New Host To Cluster
+---Go with classic wizert -------> Continue
+
+---Enter PVT-DNS of new node --------->Search
+    AND Follow all Steps of CM installation
+
+---Select host templet --None---Finish
+---We commision new node in CM
+
+We have asinge Role to that new node
+
+---HDFS -----> Instances---->Add Role instances---->select NN on new node 
+---YARN -----> Instances---->Add Role instances---->select NM on new node
+
+Restart HDFS & YARN
+
+Check in ------> HOST---> ALL HOST -----> New node is showing Commisioning with Role (DN,NM)
+#########################################################################################################################
+-------------------------------------COMMISIIONING IS DONE---------------------------------------------------------------
+#########################################################################################################################
+
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+#########################################################################################################################
+-------------------------------------DECOMMISIIONING IN Cloudera  Manager---------------------------------------------------------------
+#########################################################################################################################
+
+
+--HDFS ---> Instances---->Selct one node for DECOMMISSIONING
+----> Action For select De-Commisiong
+
+		😎️😎️😎️😎️😎️AND WE WANT ADD THIS NODE AGIN IN TO THE CLUSTER😎️😎️😎️😎️😎️
+
+--HDFS ---> Instances---->Selct DECOMMISSION NODE
+----> Action For select Re-Commisiong
+
+
+#########################################################################################################################
+-------------------------------------DE-COMMISIIONING IS DONE------------------------------------------------------------
+#########################################################################################################################
+
