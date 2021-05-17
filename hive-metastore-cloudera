@@ -1,0 +1,198 @@
+#################################################################
+	Configuring hive remote metastore on CDH
+#################################################################
+
+
+## Note : Cloudera recommends you configure a database for the metastore on one or more remote servers (that is, on a host or hosts separate from
+the HiveServer1 or HiveServer2 process). MySQL is the most popular database to use. 
+
+We will configure mysql db on a host different from HMS and HS2 service
+
+
+*********************-----**** Install mysql Database****-----*********************
+-----------------create DATA BASE on Cloudera Manager so go on ssh CM------------------------ 
+
+sudo apt-get install mysql-server -y
+
+sudo service mysql status                                      -----------------check status active or not-----                              
+                                 
+
+
+
+
+**********-----**** Install mysql connector ****---*****************************
+
+############ Connect to HS2 on new Terminal ########## 
+
+sudo apt-get install libmysql-java 
+                                                                            ------------------------------------type cmd 
+
+
+cd /opt/cloudera/parcels
+ls
+
+                                                                -------------------------check vesion of cloudera and match it in bellow line
+cd
+  
+sudo cp /usr/share/java/mysql-connector-java-5.1.38.jar /opt/cloudera/parcels/CDH-5.16.2-1.cdh5.16.2.p0.8/lib/hive/lib/
+								
+                                                  -----------------we are perform connectivity to hive so driver paste in /lib/hive/lib
+
+
+############ Connect to HMS on new Terminal ########## 
+
+sudo apt-get install libmysql-java
+                                                                            ------------------------------------type cmd 
+
+
+cd /opt/cloudera/parcels
+ls
+
+                                                                -------------------------check vesion of cloudera and match it in bellow line
+cd
+  
+	sudo cp /usr/share/java/mysql-connector-java-5.1.38.jar /opt/cloudera/parcels/CDH-5.16.2-1.cdh5.16.2.p0.8/lib/hive/lib/
+								
+                                                             -----------------we are perform connectivity to hive so driver paste in /lib/hive/lib
+
+
+-----**** Secure mysql ****-----
+
+//Connect to CM on new Terminal//
+
+
+$ sudo /usr/bin/mysql_secure_installation 
+[...] 
+Enter current password for root (enter for none): 
+OK, successfully used password, moving on... 
+[...] 
+Set root password? [Y/n] y 
+New password: 
+Re‐enter new password: 
+Remove anonymous users? [Y/n] Y 
+[...] 
+Disallow root login remotely? [Y/n] N 
+[...] 
+Remove test database and access to it [Y/n] Y 
+[...] 
+Reload privilege tables now? [Y/n] Y 
+All done!
+
+
+nnynyy
+-----**** Create database and user ****----- on CM
+
+
+$ mysql -u root -p
+                           --------------------------type manually
+Enter password: 
+mysql> CREATE DATABASE metastore; 
+mysql> USE metastore; 
+mysql> SOURCE /opt/cloudera/parcels/CDH-5.16.2-1.cdh5.16.2.p0.8/lib/hive/scripts/metastore/upgrade/mysql/hive-schema-1.1.0.mysql.sql;
+                       
+					--------------------------create table in DB
+
+mysql> CREATE USER 'hive'@'ip-172-31-91-128.ec2.internal' IDENTIFIED BY 'mypassword';  ------------------------pvt DNS ofHMS
+
+(Note : in the place of metastorehost use <pri-dns> of host on which HMS is running )
+
+mysql> REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'hive'@'ip-172-31-91-128.ec2.internal'; ------------------------pvt DNS ofHMS
+
+mysql> GRANT ALL PRIVILEGES ON metastore.* TO 'hive'@'metastorehost'; 
+mysql> FLUSH PRIVILEGES; 
+mysql> quit;
+
+
+-----**** Configure metastore service to communicate with the MySQL db ****-----
+
+--------------------------connect to hms
+
+## Do following on HMS host
+ 
+cd /opt/cloudera/parcels/ 
+ls 
+---------copy version and paste bellow line
+cd
+
+sudo nano /opt/cloudera/parcels/CDH-5.16.2-1.cdh5.16.2.p0.8/etc/hive/conf.dist/hive-site.xml
+
+
+
+--------make change in bellow script connectionURL (database PVT DNS i.e CM PVT DNs)
+--------make change in bellow script hive.metastore.uris(HMS PVT DNS)
+--------comment previous propertys and past this new propertys
+
+<property>
+  <name>javax.jdo.option.ConnectionURL</name>
+  <value>jdbc:mysql://ip-172-31-82-219.ec2.internal/metastore</value>
+  <description>the URL of the MySQL database</description>
+</property> 
+<property>
+  <name>javax.jdo.option.ConnectionDriverName</name>
+  <value>com.mysql.jdbc.Driver</value>
+</property>
+<property>
+  <name>javax.jdo.option.ConnectionUserName</name>
+  <value>hive</value>
+</property>
+<property>
+  <name>javax.jdo.option.ConnectionPassword</name>
+  <value>mypassword</value>
+</property> 
+<property>
+  <name>datanucleus.autoCreateSchema</name>
+  <value>false</value>
+</property>
+<property>
+  <name>datanucleus.fixedDatastore</name>
+  <value>true</value>
+</property>
+<property>
+  <name>datanucleus.autoStartMechanism</name>
+  <value>SchemaTable</value>
+</property>
+<property>
+  <name>hive.metastore.uris</name>
+  <value>thrift://ip-172-31-91-128.ec2.internal:9083</value>
+  <description>IP address (or fully‐qualified domain name) and port of the metastore host</description>
+</property>
+<property>
+<name>hive.metastore.schema.verification</name>
+<value>true</value>
+</property>
+
+
+## Note : hive.metastore.uris is the only property that must be configured on all
+  ---------------------------------(Because client can not connect direct to HMS . Client connect to SH2 and Then HS2 Connect HMS)
+
+Connect to HS2
+
+cd /opt/cloudera/parcels/ 
+ls 
+---------copy version and paste bellow line
+cd
+
+sudo nano /opt/cloudera/parcels/CDH-5.16.2-1.cdh5.16.2.p0.8/etc/hive/conf.dist/hive-site.xml
+
+--------make change in bellow script hive.metastore.uris(HMS PVT DNS)
+
+--------comment previous propertys and past this new propertys
+
+
+<property>
+  <name>hive.metastore.uris</name>
+  <value>thrift://ip-172-31-82-219.ec2.internal:9083</value>
+  <description>IP address (or fully‐qualified domain name) and port of the metastore host</description>
+</property>
+
+*************************************************END*********************************************************
+
+
+
+For check ouver hive connectvity successfull done or not
+
+$hive
+show databases;
+                                 ------its show default database means successful
+hosts (client, metastore, HiveServer). Rest other properties are required only on metastore host
+
