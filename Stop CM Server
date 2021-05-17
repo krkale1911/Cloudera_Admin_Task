@@ -1,0 +1,22 @@
+
+
+
+
+*********************HOW TO STOP Clouders Manager Server************************
+
+
+1st --------------Click on Cloudera Manager
+2st --------------On Cloudera web--Stop Cluster
+3rd---------------On Cloudera web--Stop Clouder Manager Service
+4th---------------On Terminal In CM Host Enter command
+			$sudo service cloudera-scm-server stop
+5th---------------On AWS Stop all Running Instances
+
+*********************HOW TO START Cloudera Manager Server*************************
+
+1st ---------------Start All Instances 
+ After 5 munites 
+go on CM Web 7180
+
+start ----------------Clouder Manager Service
+start---------------  Cluster
