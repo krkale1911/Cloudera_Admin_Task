@@ -1,0 +1,63 @@
+*********************************************
+	HiveServer2 High Availability
+*********************************************
+
+                   _ _ _ _ _ _ _                               _________                     
+                   |  Dynamic   |--------------| HS2 |--------|         |                                                                 
+client ------------|  Service   |--------------| HS2 |--------| H M S   |--------------Database                                               
+                   |  Discovery |--------------| HS2 |--------|         |
+                   |____________|--------------| HS2 |--------|_________|                                           
+                                                               
+
+
+
+### Install driver jar on host where you plan to start your second HS2
+
+sudo apt-get install libmysql-java
+
+sudo cp /usr/share/java/mysql-connector-java-5.1.28.jar /opt/cloudera/parcels/CDH-5.14.0-1.cdh5.14.0.p0.24/lib/hive/lib/
+
+
+### Go to Hive -> Instances -> Add role instances -> Hiveserver2
+Start the HS2 instance
+
+
+
+### Enable Dyanamic service discovery
+
+In Hive -> Configuration -> Category - Advanced 
+Search -> hiveserver2 Advanced Configuration snippet 
+
+Under "HiveServer2 Advanced Configuration Snippet (Safety Valve) for hive-site.xml"
+Name : hive.server2.support.dynamic.service.discovery
+Value : true
+(Leave final unchecked)
+
+
+### Connect through beeline
+
+connect to Dyanamic service discovry  with HA
+ 
+jdbc:hive2://ip-172-31-18-254.ec2.internal:2181
+-----------------------------------PVD DNS of Zookeepers
+
+
+beeline
+!connect jdbc:hive2://ip-172-31-12-146.ec2.internal:2181,ip-172-31-17-155.ec2.internal:2181,ip-172-31-3-19.ec2.internal:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2
+
+Enter username-hive
+pass-hive
+Its show Dyanamic service Discovry connection done To any one HS2 Service
+
+$hive;
+$show databases;
+
+its  show default database means successfull
+
+(This string we have to give to Developer. the developer fire query on database)
+
+
+### Connect through beeline
+connect to  any DN
+beeline
+connect to Dyanamic service discovry  without HA i.e non HA
