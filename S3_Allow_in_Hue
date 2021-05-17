@@ -1,0 +1,12 @@
+_ _ _ _ 😎️ By Kiran Kale😎️
+
+
+Enable S3 as Storage for Hue
+
+STEPS:~
+	1--Come on CM
+	2--Adminstration-->External Accounts-->Add Acces Key Credential-->Add-->Enable s3 Guard
+			--->S3 guard Metadat-Region ===>> GIVE Region in this typ <us-east-1>
+			--->Cluster Acces TO S3 and Enable for cluster_1 
+	3--On CM show S3 connector service
+	4--Come on hue--> we can seen there S3 bucket
