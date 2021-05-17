@@ -1,0 +1,90 @@
+_ _ _ _ 😎️ Made By Kiran Kale😎️
+
+###########################################################################################################################################
+
+			-----------------***************___CLOUDERA ADMIN TASK____***************----------------
+
+###########################################################################################################################################
+
+			---------------**************Cluster To Cluster Backup (BDR_Backup)************--------------------
+	
+
+For cluster-to-cluster backup cluster size minumum is 4 node's 1=Master & 3=Worker's
+Because we only taking backup we are not perform processing. 3=worker node 3replication copy's & 1=master 
+
+
+STEPS:~
+	1-- Create New 4 Instances from AWS or Image 1 for Master & 3 for Worker's
+	2-- Perform Prerequisits on all instances
+							
+				-----*** Update the server ***-----
+				$ sudo apt-get update && sudo apt-get dist-upgrade -y
+
+				-----*** Disable transparent huge pages ***-----
+				$ sudo nano /etc/rc.local
+				## Add these lines:
+
+				if test -f /sys/kernel/mm/transparent_hugepage/enabled; then
+				    echo never > /sys/kernel/mm/transparent_hugepage/enabled
+				fi
+
+				if test -f /sys/kernel/mm/transparent_hugepage/defrag; then
+				    echo never > /sys/kernel/mm/transparent_hugepage/defrag
+				fi
+
+				$sudo -i
+
+				$source /etc/rc.local 
+
+				-----*** Install NTP ***-----
+				$ sudo apt-get install ntp -y 
+				$ sudo service ntp status
+				## If it isn't running 
+				$ sudo service ntp start 
+
+
+				-----*** Set Swappiness ***-----
+				sudo sysctl -a | grep vm.swappiness
+				sudo sysctl vm.swappiness=1
+				echo 'vm.swappiness=1' | sudo tee --append /etc/sysctl.conf
+
+
+	3--Come on to CM & Click on Add Cluster Button 
+			--->classic Wizerd ---> "Follow Same STEPS of CM Installation"
+						(pvt DNS for search,Custom Service-HDFS,YARN,Zookeeper,HIVE)
+			DONE Cluster 2 on CM we can see
+	4--Come on CM Click on 
+		       ---->Backup --->Replication Schedual--->Create Schedual -->HDFS-->Replication
+						(taking backup of source path i.e root/ but in practice we take /user because CM-bug)
+						source path /
+						Destination path of 2 cluster /   ----(we provide our directory location like /backup)
+	5--BDR Bakup is Done 
+	6--Check in cluster2 HDFS-->file browser
+
+##############################################################################################################################################
+
+
+
+
+			---------------**************Cluster To S3 Backup (Cloud_Backup)************--------------------
+
+
+	1--Come on CM Click on 
+		       ---->Backup --->Replication Schedual--->Create Schedual -->HDFS Replication
+				(taking backup of source path i.e root/ but in practice we take /user because CM-bug)
+				source path /
+				Destination path s3a://BUCKET_NAME/Folder    ----(we provide our S3 Bucket location s3://KKbucket/backup)
+			--->save Schedual
+	2--on S3 Bakup is Done 
+	3--Check in S3 Bucket
+
+###############################################################################################################################################
+
+
+
+
+
+
+
+
+
